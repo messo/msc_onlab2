@@ -1,0 +1,200 @@
+% Mindenkinek csak javasolni tudjuk, hogy latex-et használjon.
+% Szakdolgozatnál vagy diplománál már egyértelműen kijönnek az
+% előnyei a Worddel szemben.  Ennek ellenére ez a sablon messze nem
+% tökéletes.  Ha valamit javítanál benne, kérlek, küld vissza, hogy
+% hallgatótársaid is profitáljanak belőle.  Köszönöm.
+
+% További nehézséget okoz, hogy a népszerű latex disztribúciók nem
+% tartalmazzák a legújabb változatát a magyar.ldf-nek.  A szükséges
+% fájlokat a sablon mellé bemásoltuk, de le is tölthetőek innen:
+% http://www.math.bme.hu/latex/
+%
+%
+%
+\documentclass[a4paper,oneside]{article}
+%=================================================================
+% Magyar nyelvi támogatás
+%------------------------
+% ###################
+% Nyelvváltó parancsok:
+%\selectlanguage{english}
+%\selectlanguage{magyar}
+% rövid angol beszúrás:  \foreignlanguage{english}{some english text}
+% határozott névelők generálása ``magyar'' babel-el:
+% argumentum+megfelelő határozott nevelő: \az{},\Az{}
+% csak a megfelelő határozott nevelő: \az*{}, \Az*{}
+% címkék: \aref{}, \aref*{}, képletekhez \aref()
+%        \Aref{}, \Aref*{}, képletekhez \Aref()
+% oldalak: \apageref{}, \apageref*{}
+%        \Apageref{}, \Apageref*{}
+% idézetek: \acite, \acite*, \Acite, \Acite*
+% ###################
+\usepackage[english,magyar]{babel} %vegyes nyelvi támogatás a
+% magyar helyesírás ellenőrzéshez (ispell) és elválasztáshoz
+\selectlanguage{magyar}
+
+%=================================================================
+% direkt ékezetes karakter beírás támogatás
+%-------------------------------------------
+\usepackage[utf8]{inputenc} %input encoding, enables Latin2 chars
+\usepackage{t1enc} %output encoding for magyar
+\usepackage{multirow} 
+%================================================================
+% Undorító dolog bitmappelt (Type III) betűtípust nézni a PDF-ben
+% képernyőn. Az alapértelmezett Computer Modern font LaTex-ben
+% bitmappelt, ezért használjunk Times fontot:
+\usepackage{times}
+
+%================================================================
+% ha ábrát akarunk beemelni, akkor használjuk a graphicx/graphics
+% csomagot és az \includegraphics[width=<width>]{abra.eps} parancsot
+\usepackage{graphicx} %for graphics
+%kepek helye a gyokerhez(ehhez a file-hoz kepest) kepest
+\graphicspath{{./figs/}}
+
+%================================================================
+% Kötelezően használjuk a hyperref csomagot, mert ezzel többek között 
+%  kultúrált hyperlinkelt PDF-et lehet csinálni az alábbi
+%  variációkban, különféle hyperref backend-ekkel:
+%  pdflatex,dvipdfm,ps2pdf
+% tapsztalataim szerint a MikTeX (Win32) a 'dvipdfm' konverzióval
+% optimális  míg a teTeX (Linux/Solaris) jobb szereti a 'dvips' módszert
+%------------------------------------
+% pontosan egyet kommentezzünk be!!!!!!!
+% értelemszerűen backend függően generáljunk dvi-ból PDF-et!!!
+%------------------------------------
+% A hyperref csomag az utolsó beolvasott csomag legyen, kivéve néhány
+% problémás csomagot, pl. algorithm
+%-----------
+% ########################### FONTOS ###########################
+% A hyperref hibásan működik a babel csomag 'magyar.ldf' fájljának
+% 1.5-ös verziójánál korábbi változatával. 2004. februárjában a MikTeX
+% és teTex disztribúciók még csak a v.1.4 verziót tartalmazták! A fájl
+% aktuális verziója a BME Matematikai intézet LaTeX honlapjáról
+% elérhető: http://www.math.bme.hu/latex/ 
+% A lusták kedvéért a jelen sablon mellé is mellékelem:
+% magyarlatex_0.01-2.tar.gz 
+% ########################### FONTOS ###########################
+%-----------
+% Ha nem akarunk .ps-t csinálni, csak egylépésben PDF-et, és nem
+% ragaszkodunk az .eps  formátumú ábráinkhoz, akkor konvertáljuk az
+% ábráinkat .pdf-be (epstopdf):  .tex --pdflatex-->  .pdf
+%\usepackage[pdflatex]{hyperref}
+% ----------
+% Ha nem akarunk .ps-t csinálni, csak PDF-et, de ragaszkodunk az .eps
+% formátumú ábráinkhoz: .tex --latex--> .dvi --dvipdfm--> .pdf
+%\usepackage[dvipdfm]{hyperref} 
+% ----------
+% Ha  akarunk .ps-t is csinálni, meg  PDF-et is, és ragaszkodunk az .eps
+% formátumú ábráinkhoz, 
+% .tex --latex--> .dvi --'dvips -t a4'--> .ps --ps2pdf--> .pdf 
+%\usepackage[ps2pdf]{hyperref}
+%\usepackage[dvipdfm]{hyperref}
+\usepackage[hidelinks]{hyperref}
+\hypersetup{
+    colorlinks=false,       % false: boxed links; true: colored links
+    linkcolor=red,          % color of internal links
+    citecolor=green,        % color of links to bibliography
+    filecolor=magenta,      % color of file links
+    urlcolor=black           % color of external links
+}
+\usepackage{tikz}
+\usepackage{tkz-graph}
+\usetikzlibrary{arrows,calc,automata,chains,matrix,positioning,scopes,decorations.pathmorphing,decorations.pathreplacing}
+\usepackage{paralist}
+\usepackage{epstopdf}
+
+\usepackage[backend=bibtex,maxnames=6]{biblatex}
+\addbibresource{refs.bib}
+
+\usepackage{indentfirst}
+\usepackage{setspace}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{array}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Itt kezdődik a doksi maga
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\onehalfspacing
+\frenchspacing
+
+% Ez kell!!!
+\input{onlabmacros}
+\markright{Kriván Bálint (CBVOEN)} % egyoldalas fejléc!!!
+%--------------------------------------------------------------------
+% fedlap
+%--------------------------------------------------------------------
+\begin{titlepage}
+%bme logo 
+ \begin{figure}[h]
+    \centering
+      \includegraphics[width=12cm]{bme_logo.eps}
+  \label{fig:bme_logo}
+  \end{figure}
+  % nincs fejléc a címlapon!!
+  \thispagestyle{empty}
+  %cím generálás
+  \onlabcim
+
+  \onlabszerzo{Hálózatok és szolgáltatások}{balint@krivan.hu}{Kovács Gábor}{kovacsg@tmit.bme.hu}
+  
+  \feladatcim{Videofelvételek 3D rekonstrukciója és transzformációja}
+  \feladatmaga{XXX}
+  \tanevfelev{2013/14}{2}
+ 
+\end{titlepage} 
+
+%==================================================================
+\section{A laboratóriumi munka környezetének ismertetése, a munka előzményei és kiindulási állapota}
+\label{sec:bevezeto}
+
+\subsection{Bevezetés/elméleti összefoglaló}
+\label{sec:bevez-ossz}
+
+
+\subsection{A munka állapota, készültségi foka a félév elején}
+\label{sec:munka-allap-kesz}
+
+A feladat frissen lett kitűzve, előttem nem dolgozott rajta senki. Az első feladataim közé tartozott az elméleti alapok megismerése, valamint az OpenCV keretrendszerrel történő tapasztalatszerzés. Az elején megfogalmazott feladatkitűzés több féléven átível, az első félévre kitűzött feladat -- az előbbieken túl -- kamerák (sztereó)kalibrációja valamint szinkronizációja volt.
+
+\newpage
+%==================================================================
+\section{Az elvégzett munka és az eredmények ismertetése}
+\label{sec:az-elvegzett-munka}
+
+\subsection{Összefoglalás}
+\label{sec:osszefoglalas}
+
+A félév során elért eredmények összefoglalva:
+\begin{itemize}
+\item Elolvastam számos API dokumentációt és témához kapcsolódó online cikket, leírást
+\item Készítettem körülbelül 900 sor C++-kódot
+\item Megismertem a ,,lyukkamera'' képalkotási modellt
+\item Elkezdtem használni az OpenCV alkalmazáskönyvtárat, megismertem az alapvető adatszerkezeteit, valamint a kamerakalibrációval kapcsolatos eljárásokat, a mögöttük lévő elméletet
+\end{itemize}
+\newpage
+ 
+%==================================================================
+\section{Irodalom, és csatlakozó dokumentumok jegyzéke}
+\label{sec:irod-es-csatl}
+
+\printbibliography[title={Irodalomjegyzék}]
+
+%==================================================================
+\subsection{A csatlakozó dokumentumok jegyzéke}
+\label{sec:csat-irod}
+
+Az elkészült programkód, illetve a felhasznált fájlok az alábbi GIT repóban érhető el, melyből publikus klón készíthető:
+\begin{center}
+\url{https://github.com/messo/msc_onlab2}
+\end{center}
+
+A tárolóban a forrásfájlok és fejlécek találhatóak, valamint CMake segítségével Makefileok generálhatóak, amelyekkel különféle platformokon lefordíthatóak a futtatható állományok.
+
+\end{document} 
