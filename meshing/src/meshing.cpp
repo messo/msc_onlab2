@@ -25,7 +25,7 @@ typename PointCloud<PointT>::Ptr radiusOutlierRemoval(typename PointCloud<PointT
 	// radius_outlier_removal.setKeepOrganized(true);
 
 	// do filtering
-	PointCloud<PointT>::Ptr cleaned(new PointCloud<PointT>());
+    typename PointCloud<PointT>::Ptr cleaned(new PointCloud<PointT>());
 	radius_outlier_removal.filter(*cleaned);
 	return cleaned;
 }

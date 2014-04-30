@@ -23,3 +23,8 @@ configure_file(../left01.jpg left01.jpg COPYONLY)
 configure_file(../right01.jpg right01.jpg COPYONLY)
 add_executable(reconstruct reconstruct.cpp Camera.cpp Canvas.cpp Magic.cpp OpenGLRenderer.cpp PCDWriter.cpp PointCloudSegmenter.cpp)
 target_link_libraries(reconstruct ${OpenCV_LIBS})
+
+configure_file(../left01_bal.jpg left01_bal.jpg COPYONLY)
+configure_file(../right01_bal.jpg right01_bal.jpg COPYONLY)
+add_executable(triangulate triangulate.cpp Camera.cpp Canvas.cpp Magic.cpp OpenGLRenderer.cpp PCDWriter.cpp PointCloudSegmenter.cpp)
+target_link_libraries(triangulate ${OpenCV_LIBS})

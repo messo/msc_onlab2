@@ -56,7 +56,7 @@ void writePLY(const Mat& xyz, const Mat& img) {
 	}
 
 	std::cout << xyz.rows << " -- " << xyz.cols << "\n";
-	std::cout.flush();
+    std::cout.flush();
 
 	fclose(fp);
 }

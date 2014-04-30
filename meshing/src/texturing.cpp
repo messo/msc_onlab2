@@ -137,7 +137,7 @@ void showCamera(texture_mapping::CameraVector cams, PointCloud<PointXYZ>::Ptr &c
 	visu.addLine(p3, p2, ss.str());
 
 	// add a coordinate system
-	visu.addCoordinateSystem(1.0, "global");
+	// visu.addCoordinateSystem(1.0, "global");
 
 	// add the mesh's cloud (colored on Z axis)
 	visualization::PointCloudColorHandlerGenericField<PointXYZ> color_handler(cloud, "z");
