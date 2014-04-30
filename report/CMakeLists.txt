@@ -1,0 +1,11 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+
+PROJECT(beszamolo)
+
+INCLUDE(UseLATEX.cmake)
+
+ADD_LATEX_DOCUMENT(beszamolo.tex
+BIBFILES refs.bib
+INPUTS onlabmacros.tex
+IMAGE_DIRS figs
+DEFAULT_SAFEPDF)
