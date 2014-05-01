@@ -300,9 +300,9 @@ StereoCalib(const vector<string>& imagelist, Size boardSize, bool useCalibrated=
     {
         for( k = 0; k < 2; k++ )
         {
-            Mat img = imread(goodImageList[i*2+k], 0), rimg, cimg;
-            remap(img, rimg, rmap[k][0], rmap[k][1], CV_INTER_LINEAR);
-            cvtColor(rimg, cimg, COLOR_GRAY2BGR);
+            Mat img = imread(goodImageList[i*2+k]), rimg, cimg;
+            remap(img, cimg, rmap[k][0], rmap[k][1], CV_INTER_LINEAR);
+            //cvtColor(rimg, cimg, COLOR_GRAY2BGR);
             Mat canvasPart = !isVerticalStereo ? canvas(Rect(w*k, 0, w, h)) : canvas(Rect(0, h*k, w, h));
             resize(cimg, canvasPart, canvasPart.size(), 0, 0, CV_INTER_AREA);
             if( useCalibrated )
@@ -321,6 +321,9 @@ StereoCalib(const vector<string>& imagelist, Size boardSize, bool useCalibrated=
                 line(canvas, Point(j, 0), Point(j, canvas.rows), Scalar(0, 255, 0), 1, 8);
         imshow("rectified", canvas);
         char c = (char)waitKey();
+        if( c == ' ' ) {
+            imwrite("output.jpg", canvas);
+        }
         if( c == 27 || c == 'q' || c == 'Q' )
             break;
     }

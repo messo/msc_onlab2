@@ -157,16 +157,122 @@
 \subsection{Bevezetés/elméleti összefoglaló}
 \label{sec:bevez-ossz}
 
+\textit{Ide jön valami, ha kiderül, hogy kell még hely. Illetve le lehet írni, hogy az előző félévben csináltak itt is jók stb.}
 
 \subsection{A munka állapota, készültségi foka a félév elején}
 \label{sec:munka-allap-kesz}
 
-A feladat frissen lett kitűzve, előttem nem dolgozott rajta senki. Az első feladataim közé tartozott az elméleti alapok megismerése, valamint az OpenCV keretrendszerrel történő tapasztalatszerzés. Az elején megfogalmazott feladatkitűzés több féléven átível, az első félévre kitűzött feladat -- az előbbieken túl -- kamerák (sztereó)kalibrációja valamint szinkronizációja volt.
+Az előző félév során az Önálló laboratórium 1 című tárgy keretében megismerkedtem az OpenCV keretrendszerrel, valamint az általa használt kameramodellel és egy lézerpont detektálásának lehetőségeit jártam körben. A jelenlegi félévben így nem kellett elölről kezdeni mindent, ott folytathattam ahol abbahagytam. A jelenlegi félév fő célja, hogy videofelvételeket tudjunk rekonstruálni 3D-ben.
 
 \newpage
 %==================================================================
 \section{Az elvégzett munka és az eredmények ismertetése}
 \label{sec:az-elvegzett-munka}
+
+\subsection{Sztereó-kalibráció}
+\label{sec:sztereo-kalibracio}
+
+Az előző félévben még csak egy kamerát használtam, de a 3D rekonstrukcióhoz szükség van sztereókamerák alkalmazására. A félév során két darab azonos gyártmányú webkamerát használtam. Mielőtt az általuk készített képeket használni tudnánk szükséges egy kalibráció.
+
+A kalibráció során két lényegében eltérő paraméterhalmazt nyerhetünk ki. Az egyik a kamerák tulajdonságaiból adódnak (fókusz-távolság, torzítási paraméterek), ahogy azt az előző félévben is láttuk. A második pedig a két kamera egymáshoz viszonyított helyzete (eltolás, forgatás). A kalibráció során megkaphatjuk azokat a transzformációkat is (a torzítás helyreállítása mellett), melyek a két kamera képét úgy transzformálják, hogy az azonos pontok egy egyenesbe essenek. Felhasználva, hogy az egymásnak megfelelő képpontok csak $x$ irányban térnek el, a két képből a 3D-s pontfelhő helyreállításának számítási komplexitása egyszerűsödik.
+
+Hasonlóan az előző félévhez, most is egy sakktábla mintát fogunk használni a kalibrációhoz. A sakktáblát különböző pozícióban a két kamera által készített képen detektáljuk, majd a mezők sarkainak pozíciói alapján kiszámolhatóak az előzőekben említett paraméterek, melyekhez az OpenCV rendelkezésre bocsájt különböző függvényeket.
+
+\begin{figure}[tbh]
+  \centering
+  \includegraphics[width=150pt]{figs/left02.jpg}\hspace{15pt}
+  \includegraphics[width=150pt]{figs/right02.jpg}
+  \caption{A kalibrációhoz felhasznált egyik képpár \label{fig:imagepairs}}
+\end{figure}
+
+\begin{figure}[tbh]
+  \centering
+  \begin{tikzpicture}[x=320,y=320]
+    \node[anchor=south west,inner sep=0] at (0,0) {\includegraphics[width=320pt]{figs/calibrated.jpg}};
+    \draw[red,thick] (0,0.243) -- (1,0.243);
+    \draw[red,thick] (0,0.083) -- (1,0.083);
+\end{tikzpicture}
+  \caption{Kalibráció után az előző képpár \label{fig:calibrated}}
+\end{figure}
+
+A példák között található egy minta-alkalmazás, ami két rögzített kamera bal- és jobbkép listája alapján kalibrál. Ezt átalakítottam és két részre bontottam. Készült egy egyszerű alkalmazás, ami a két USB-n csatlakoztatott kamera képeit könnyen elmenthetjük fájlokba (\texttt{leftxx.jpg} és \texttt{rightxx.jpg} lásd \aref{fig:imagepairs}. ábra), valamint egy másik, ami ezeket megtalálva elkészíti a kalibrációs fájlokat, melyeket a tényleges alkalmazásunk felolvashat. Ez azért fontos, mert így a tényleges kalibráció a feladat többi részétől elkülöníthető és egy statikus térrészről több pozícióban is készíthetünk ugyanazon kamerákkal képeket. \Aref{fig:calibrated}. ábrán látható, hogy a képpontok valóban egy egyenesbe esnek (balfelső és a jobbalsó sarokban állított egyenesek), valamint, hogy ha relatíve jól pozicionáljuk a kamerákat akkor a transzformáció után a kapott képek legnagyobb része hasznos információt tartalmaz.
+
+\subsection{3D-rekonstrukció}
+
+Kalibráció után rendelkezésre áll minden információ, amire szükségünk lesz a 3D-s pontfelhő megalkotására. OpenCV-ben találhatunk egy \texttt{reprojectImageTo3D} \cite{opencv-reprojectImageTo3D} nevű függvényt, mely pontosan ezt csinálja, de ehhez szükségünk van egy \textit{disparity map}re. Ez azt írja le, hogy egy adott pont a két képen mekkora $\delta x$ távolságra van egymástól. Könnyű meggondolni, hogy ha egy pont a kamerákhoz közel van akkor ez a távolság nagy, ha távol akkor pedig kicsi lásd \aref{fig:depth}. ábra. Ennek felhasználásával adhatunk mindegyik képpontnak mélység információt, így nyerhetjük a 3D-s pontfelhőt.
+
+\begin{figure}[tbh]
+  \centering
+\definecolor{ffqqqq}{rgb}{1.0,0.0,0.0}
+\definecolor{qqqqff}{rgb}{0.0,0.0,1.0}
+\begin{tikzpicture}[line cap=round,line join=round,>=triangle 45,x=1.0cm,y=1.0cm]
+\clip(-0.5,-1.15) rectangle (4,7);
+\draw [dotted,domain=-5.700000000000001:0.5] plot(\x,{(-0.0--0.75*\x)/-0.5});
+\draw [dotted,domain=1.98:15.480000000000002] plot(\x,{(-1.875--0.75*\x)/0.52});
+\draw [dotted,domain=0.5:15.480000000000002] plot(\x,{(-0.75--0.75*\x)/0.5});
+\draw [dotted,domain=-5.700000000000001:1.98] plot(\x,{(-1.125--0.75*\x)/-0.48});
+\draw [color=qqqqff,domain=0.5:15.480000000000002] plot(\x,{(-3.9375--6.75*\x)/0.75});
+\draw [color=ffqqqq,domain=0.5:15.480000000000002] plot(\x,{(-1.9375--2.75*\x)/0.75});
+\draw [color=ffqqqq,domain=-5.700000000000001:1.98] plot(\x,{(-4.8975--2.75*\x)/-0.73});
+\draw [color=qqqqff,domain=-5.700000000000001:1.98] plot(\x,{(-12.817499999999999--6.75*\x)/-0.73});
+\draw (0.0,0.0)-- (1.0,0.0);
+\draw (1.5,0.0)-- (2.5,0.0);
+\draw (2.75,6.0)-- (3.75,6.0);
+\draw (3.75,2.0)-- (2.75,2.0);
+\begin{scriptsize}
+\draw [fill=qqqqff] (0.0,0.0) circle (1.5pt);
+\draw [fill=qqqqff] (1.5,0.0) circle (1.5pt);
+\draw [fill=qqqqff] (0.5,-0.75) circle (1.5pt);
+\draw[color=qqqqff] (0.5,-1.02) node {$C1$};
+\draw [fill=qqqqff] (1.98,-0.75) circle (1.5pt);
+\draw[color=qqqqff] (2.1,-1.06) node {$C2$};
+\draw [fill=ffqqqq] (1.25,2.0) circle (1.5pt);
+\draw [fill=qqqqff] (1.25,6.0) circle (1.5pt);
+\draw [fill=ffqqqq] (1.780909090909091,-0.0) circle (1.5pt);
+\draw [fill=ffqqqq] (0.7045454545454546,-0.0) circle (1.5pt);
+\draw [fill=qqqqff] (0.5833333333333334,-0.0) circle (1.5pt);
+\draw [fill=qqqqff] (1.8988888888888888,-0.0) circle (1.5pt);
+\draw [fill=qqqqff] (3.3333333333333335,6.0) circle (1.5pt);
+\draw [fill=qqqqff] (3.148888888888889,6.0) circle (1.5pt);
+\draw [fill=ffqqqq] (3.030909090909091,2.0) circle (1.5pt);
+\draw [fill=ffqqqq] (3.4545454545454546,2.0) circle (1.5pt);
+\end{scriptsize}
+\end{tikzpicture}
+\caption{Mélység és a \textit{disparity map} kapcsolata \label{fig:depth}}
+\end{figure}
+
+A szakirodalomban sokféle algoritmust találhatunk \cite{disparity-pixel} \cite{disparity-belief} \cite{disparity-dense-from-sparse}, amellyel két képpár alapján kiszámolhatjuk a disparity mapet, ezek egymástól sebességben, valamint különféle típusú képekre jobb/pontosabb megoldásban térnek el. A fő probléma ezek megítélésénél, hogy főleg jól ismert úgymond ,,referencia'' képekre, szekvenciákra vannak tesztelve, optimalizálva, egymással összehasonlítva nem pedig való életbeli képekkel, ami igencsak eltorzítja a laboratóriumon kívül történő alkalmazásukat. Én úgy döntöttem, hogy az egyszerűség kedvéért az OpenCV-ben implementált megoldások közül választom ki a legjobbnak tűnőt, és nem kezdek el megírni egyet valamelyik publikáció alapján.
+
+Az OpenCV három implementációt tartalmaz: \texttt{StereoBM}, \texttt{StereoSGBM} \cite{disparity-sgbm} és \texttt{StereoVar} \cite{disparity-var}. Ezeket kipróbálva arra jutottam, hogy számomra a \texttt{StereoSGBM} a megfelelő. \Aref{fig:disparities}. ábrán látható az algoritmusok által visszaadott eredmények vizuális megjelenítése (a világosabb szín közelebbi pontot jelent).
+
+\begin{figure}[tbh]
+  \centering
+  \begin{subfigure}[b]{.5\linewidth}
+	\centering
+	\includegraphics[width=160pt]{figs/left01_mapped.jpg}
+	\caption{A rektifikált baloldali kép}
+  \end{subfigure}%
+  \begin{subfigure}[b]{.5\linewidth}
+	\centering
+    \includegraphics[width=160pt]{figs/disparity_bm.jpg}
+	\caption{\texttt{StereoBM}}
+  \end{subfigure}
+  \begin{subfigure}[b]{.5\linewidth}
+	\centering
+	\includegraphics[width=160pt]{figs/disparity_sgbm.jpg}
+	\caption{\texttt{StereoSGBM}}
+  \end{subfigure}%
+  \begin{subfigure}[b]{.5\linewidth}
+	\centering
+    \includegraphics[width=160pt]{figs/disparity_var.jpg}
+	\caption{\texttt{StereoVar}}
+  \end{subfigure}
+\caption{A baloldali kép és az algoritmusok által adott eredmények \label{fig:disparities}}
+\end{figure}
+
+Jól látható, hogy a \texttt{StereoSGBM} adja a legjobb eredményt és szinte alig lassabb a \texttt{StereoBM}-nél. Bárhogy próbálkoztam, nem sikerült a \texttt{StereoVar}-t értékelhetően felparaméterezni.
+
+Miután megvan a disparity map, meghívhatjuk a \texttt{reprojectImageTo3D} függvényt a megfelelő paraméterekkel és megkaphatjuk a 3D pontfelhőt. Ezt könnyen megjeleníthetjük OpenGL segítségével, vagy kimenthetjük egy jól ismert szöveges formátumba, pl. PLY (Stanford Triangle Format) vagy PCD (Point Cloud Data). Ennek eredményét láthatjuk \aref{fig:pcd}. ábrán.
 
 \subsection{Összefoglalás}
 \label{sec:osszefoglalas}

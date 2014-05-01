@@ -56,7 +56,7 @@ void writePLY(const Mat& xyz, const Mat& img) {
 	}
 
 	std::cout << xyz.rows << " -- " << xyz.cols << "\n";
-    std::cout.flush();
+	std::cout.flush();
 
 	fclose(fp);
 }
@@ -126,7 +126,8 @@ int main(int argc, char** argv) {
 
 	magic.reprojectTo3D(imgDisparity16S, xyz);
 	Mat disp = magic.normalizeDisparity(imgDisparity16S);
-	imshow("disp", disp(magic.validRoiLeft));
+	imshow("disp", disp);
+	imwrite("disparity.jpg", disp);
 
 	// waitKey();
 
@@ -182,7 +183,7 @@ int main(int argc, char** argv) {
 	while (true) {
 		renderer.render();
 
-		int ch = waitKey(500);
+		char ch = waitKey(500);
 		if (ch == 27) {
 			break;
 		} else if (ch == 'f') {

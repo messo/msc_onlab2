@@ -17,10 +17,10 @@ Magic::Magic() :
 	int numberOfDisparities = ((imageSize.width / 8) + 15) & -16;
 	//int SADWindowSize = 0;
 
-//  namedWindow("Magic", 1);
-//  createTrackbar("preFilterCap", "Magic", &(bm.state->preFilterCap), 63);
-//  createTrackbar("SADWindowSize", "Magic", &(bm.state->SADWindowSize), 21);
-//  createTrackbar("textureThreshold", "Magic", &(bm.state->textureThreshold),
+  //namedWindow("Magic", 1);
+  //createTrackbar("preFilterCap", "Magic", &(bm.state->preFilterCap), 63);
+  //createTrackbar("SADWindowSize", "Magic", &(bm.state->SADWindowSize), 21);
+  //createTrackbar("textureThreshold", "Magic", &(bm.state->textureThreshold),
 //          100);
 //  createTrackbar("uniquenessRatio", "Magic", &(bm.state->uniquenessRatio),
 //          50);
@@ -28,17 +28,17 @@ Magic::Magic() :
 //          200);
 //  createTrackbar("speckleRange", "Magic", &(bm.state->speckleRange), 128);
 
-//bm.state->roi1 = ((CvRect)validRoiLeft);
-//bm.state->roi2 = ((CvRect)validRoiRight);
-//  bm.state->preFilterCap = 31;
-//  bm.state->SADWindowSize = 5;
-//  bm.state->minDisparity = 0;
-//  bm.state->numberOfDisparities = numberOfDisparities;
-//  bm.state->textureThreshold = 10;
-//  bm.state->uniquenessRatio = 1;
-//  bm.state->speckleWindowSize = 100;
-//  bm.state->speckleRange = 32;
-//  bm.state->disp12MaxDiff = 1;
+    bm.state->roi1 = ((CvRect)validRoiLeft);
+    bm.state->roi2 = ((CvRect)validRoiRight);
+    bm.state->preFilterCap = 31;
+    bm.state->SADWindowSize = 13;
+    bm.state->minDisparity = 0;
+    bm.state->numberOfDisparities = numberOfDisparities;
+    bm.state->textureThreshold = 10;
+    bm.state->uniquenessRatio = 1;
+    bm.state->speckleWindowSize = 100;
+    bm.state->speckleRange = 32;
+    bm.state->disp12MaxDiff = 1;
 
 //  namedWindow("Magic SGBM", 1);
 //  createTrackbar("preFilterCap", "Magic SGBM", &(sgbm.preFilterCap), 100);
@@ -64,23 +64,23 @@ Magic::Magic() :
 	sgbm.disp12MaxDiff = 1;
 	sgbm.fullDP = true; // false?
 
-//  namedWindow("VAR", 1);
-//  createTrackbar("levels", "VAR", &(var.levels), 10);
-//  createTrackbar("nIt", "VAR", &(var.nIt), 100);
-//  createTrackbar("poly_n", "VAR", &(var.poly_n), 10);
+  //namedWindow("VAR", 1);
+  //createTrackbar("levels", "VAR", &(var.levels), 10);
+  //createTrackbar("nIt", "VAR", &(var.nIt), 100);
+  //createTrackbar("poly_n", "VAR", &(var.poly_n), 10);
 
-//  var.levels = 3;                              // ignored with USE_AUTO_PARAMS
-//  var.pyrScale = 0.5;                          // ignored with USE_AUTO_PARAMS
-//  var.nIt = 25;
-//  var.minDisp = -numberOfDisparities;
-//  var.maxDisp = 0;
-//  var.poly_n = 3;
-//  var.poly_sigma = 0.0;
-//  var.fi = 15.0f;
-//  var.lambda = 0.03f;
-//  var.penalization = var.PENALIZATION_TICHONOV; // ignored with USE_AUTO_PARAMS
-//  var.cycle = var.CYCLE_V;                     // ignored with USE_AUTO_PARAMS
-//  var.flags = var.USE_SMART_ID | var.USE_AUTO_PARAMS | var.USE_INITIAL_DISPARITY | var.USE_MEDIAN_FILTERING;
+  var.levels = 3;                              // ignored with USE_AUTO_PARAMS
+  var.pyrScale = 0.5;                          // ignored with USE_AUTO_PARAMS
+  var.nIt = 25;
+  var.minDisp = -numberOfDisparities;
+  var.maxDisp = 0;
+  var.poly_n = 3;
+  var.poly_sigma = 0.0;
+  //var.fi = 15.0f;
+  //var.lambda = 0.03f;
+  var.penalization = var.PENALIZATION_TICHONOV; // ignored with USE_AUTO_PARAMS
+  var.cycle = var.CYCLE_V;                     // ignored with USE_AUTO_PARAMS
+  var.flags = var.USE_SMART_ID | var.USE_AUTO_PARAMS | var.USE_INITIAL_DISPARITY | var.USE_MEDIAN_FILTERING;
 
 	cameraMatrix[0] = Mat::eye(3, 3, CV_64F);
 	cameraMatrix[1] = Mat::eye(3, 3, CV_64F);
@@ -171,9 +171,9 @@ void Magic::getDisparityMatrix(const Mat& left, const Mat& right, SC_TYPE type, 
 	cvtColor(left, imgLeftGray, CV_BGR2GRAY);
 	cvtColor(right, imgRightGray, CV_BGR2GRAY);
 
-	sgbm(imgLeftGray, imgRightGray, magic);
-	//bm(imgLeftGray, imgRightGray, magic);
-	//bm(imgLeftGray, imgRightGray, magic);
+    sgbm(imgLeftGray, imgRightGray, magic);
+    //bm(imgLeftGray, imgRightGray, magic);
+    //var(imgLeftGray, imgRightGray, magic);
 }
 
 void Magic::reprojectTo3D(const Mat& imgDisparity16S, Mat& xyz)
