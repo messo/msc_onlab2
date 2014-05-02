@@ -152,7 +152,7 @@ void showCamera(texture_mapping::CameraVector cams, PointCloud<PointXYZ>::Ptr &c
 
 int main(int argc, char** argv) {
 	PolygonMeshPtr mesh(new PolygonMesh()); //= greedyTriangulate(cloud);
-	io::loadPLYFile("mesh.ply", *mesh);
+    io::loadPLYFile("greedy_filtered_5.ply", *mesh);
 
 	// textúra mappelés
 	TextureMesh tex_mesh;

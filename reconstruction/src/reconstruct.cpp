@@ -40,9 +40,9 @@ void writePLY(const Mat& xyz, const Mat& img) {
 	fprintf(fp, "%s", "property float x\n");
 	fprintf(fp, "%s", "property float y\n");
 	fprintf(fp, "%s", "property float z\n");
-	fprintf(fp, "%s", "property uchar b\n");
-	fprintf(fp, "%s", "property uchar g\n");
-	fprintf(fp, "%s", "property uchar r\n");
+	fprintf(fp, "%s", "property uchar blue\n");
+	fprintf(fp, "%s", "property uchar green\n");
+	fprintf(fp, "%s", "property uchar red\n");
 	fprintf(fp, "%s", "end_header\n");
 
 	for (int y = 0; y < xyz.rows; y += 4) {
@@ -127,14 +127,14 @@ int main(int argc, char** argv) {
 	magic.reprojectTo3D(imgDisparity16S, xyz);
 	Mat disp = magic.normalizeDisparity(imgDisparity16S);
 	imshow("disp", disp);
-	imwrite("disparity.jpg", disp);
+	imwrite("disparity.jpg", disp(magic.dispRoi));
 
 	// waitKey();
 
 	// ---------------------------
 	// Túl távoli képek kiszûrése
 	// ---------------------------
-	magic.filter3DCoordinates(xyz);
+	magic.filter3DCoordinates(xyz, magic.dispRoi);
 
 	Mat rvec, tvec, rot;
 	magic.getCameraPose(rvec, tvec);

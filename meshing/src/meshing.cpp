@@ -1,4 +1,7 @@
 #include <iostream>
+#include <string>
+#include <sstream>
+
 #include <pcl/common/common.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
@@ -10,8 +13,10 @@
 #include <pcl/features/normal_3d.h>
 #include <pcl/surface/gp3.h>
 #include <pcl/surface/mls.h>
+#include <pcl/surface/organized_fast_mesh.h>
 #include <pcl/io/vtk_io.h>
 #include <pcl/io/ply_io.h>
+#include <pcl/filters/conditional_removal.h>
 
 using namespace pcl;
 
@@ -30,7 +35,7 @@ typename PointCloud<PointT>::Ptr radiusOutlierRemoval(typename PointCloud<PointT
 	return cleaned;
 }
 
-void greedyTriangulate(PointCloud<PointXYZ>::Ptr cloud) {
+PolygonMesh::Ptr greedyTriangulate(PointCloud<PointXYZ>::Ptr cloud, double searchRadius, int maximumNN) {
 	NormalEstimation<PointXYZ, Normal> n;
 	n.setInputCloud(cloud);
 
@@ -38,7 +43,7 @@ void greedyTriangulate(PointCloud<PointXYZ>::Ptr cloud) {
 	n.setSearchMethod(tree);
 
 	PointCloud<Normal>::Ptr normals(new PointCloud<Normal>);
-	n.setRadiusSearch(0.2);
+    n.setRadiusSearch(0.4);
 	n.compute(*normals);
 	n.setViewPoint(0.035246f, 0.0173491f, 1.12414f);
 
@@ -59,11 +64,11 @@ void greedyTriangulate(PointCloud<PointXYZ>::Ptr cloud) {
 	gp3.setSearchMethod(tree2);
 
 	// Set the maximum distance between connected points (maximum edge length)
-	gp3.setSearchRadius(1.5);
+    gp3.setSearchRadius(searchRadius);
 
 	// Set typical values for the parameters
-	gp3.setMu(2.5);
-	gp3.setMaximumNearestNeighbors(100);
+    gp3.setMu(2.5);
+    gp3.setMaximumNearestNeighbors(maximumNN);
 	gp3.setMaximumSurfaceAngle(M_PI / 4); // 45 degrees
 	gp3.setMinimumAngle(M_PI / 18); // 10 degrees
 	gp3.setMaximumAngle(2 * M_PI / 3); // 120 degrees
@@ -71,14 +76,10 @@ void greedyTriangulate(PointCloud<PointXYZ>::Ptr cloud) {
 	gp3.setConsistentVertexOrdering(true);
 
 	// Get result
-	PolygonMesh triangles;
-	gp3.reconstruct(triangles);
-	io::saveVTKFile("mesh.vtk", triangles);
-	io::savePLYFile("mesh.ply", triangles);
+    PolygonMesh::Ptr triangles(new PolygonMesh());
+    gp3.reconstruct(*triangles);
 
-	// Additional vertex information
-	// std::vector<int> parts = gp3.getPartIDs();
-	// std::vector<int> states = gp3.getPointStates();
+    return triangles;
 }
 
 PointCloud<PointXYZ>::Ptr upsampling(PointCloud<PointXYZ>::Ptr cloud) {
@@ -87,14 +88,43 @@ PointCloud<PointXYZ>::Ptr upsampling(PointCloud<PointXYZ>::Ptr cloud) {
 	mls.setSearchRadius(1.5);
 	mls.setPolynomialFit(true);
 	mls.setPolynomialOrder(3);
-	mls.setUpsamplingMethod(MovingLeastSquares<PointXYZ, PointXYZ>::SAMPLE_LOCAL_PLANE);
-	mls.setUpsamplingRadius(0.3);
-	mls.setUpsamplingStepSize(0.1);
+    mls.setUpsamplingMethod(MovingLeastSquares<PointXYZ, PointXYZ>::SAMPLE_LOCAL_PLANE);
+    mls.setUpsamplingRadius(0.3); // 0.3
+    mls.setUpsamplingStepSize(0.1); // 0.1
 
 	PointCloud<PointXYZ>::Ptr output(new PointCloud<PointXYZ>());
 	mls.process(*output);
 	return output;
 }
+
+/*PointCloud<PointXYZ>::Ptr upsampling(PointCloud<PointXYZ>::Ptr cloud) {
+    MovingLeastSquares<PointXYZ, PointXYZ> mls;
+    mls.setInputCloud(cloud);
+    mls.setSearchRadius(2.0);
+    //mls.setPolynomialFit(true);
+    //mls.setPolynomialOrder(3);
+    mls.setUpsamplingMethod(MovingLeastSquares<PointXYZ, PointXYZ>::VOXEL_GRID_DILATION);
+    mls.setDilationIterations(2); // 2
+    mls.setDilationVoxelSize(0.1); // 0.1
+    //mls.setUpsamplingRadius(0.3);
+    //mls.setUpsamplingStepSize(0.1);
+
+    PointCloud<PointXYZ>::Ptr output(new PointCloud<PointXYZ>());
+    mls.process(*output);
+
+    ConditionAnd<PointXYZ>::Ptr range_cond (new ConditionAnd<PointXYZ> ());
+    range_cond->addComparison (FieldComparison<PointXYZ>::ConstPtr (new FieldComparison<PointXYZ> ("x", ComparisonOps::GT, -1000.0)));
+    range_cond->addComparison (FieldComparison<PointXYZ>::ConstPtr (new FieldComparison<PointXYZ> ("x", ComparisonOps::LT, 1000.0)));
+    // build the filter
+    ConditionalRemoval<PointXYZ> condrem (range_cond);
+    condrem.setInputCloud (output);
+    condrem.setKeepOrganized(true);
+    // apply filter
+    PointCloud<PointXYZ>::Ptr output_filtered(new PointCloud<PointXYZ>());
+    condrem.filter (*output_filtered);
+
+    return output_filtered;
+}*/
 
 int main(int argc, char** argv) {
 	PCDReader reader;
@@ -104,7 +134,33 @@ int main(int argc, char** argv) {
 	//int count = atoi(argv[2]);
 
 	PointCloud<PointXYZ>::Ptr cloud(new PointCloud<PointXYZ>());
-	reader.read("merged.pcd", *cloud);
+    reader.read("magic.pcd", *cloud);
+
+    /*for(int i=1; i<15; i+=2) {
+        OrganizedFastMesh<PointXYZ> orgMesh;
+        PolygonMesh triangles;
+        orgMesh.setTrianglePixelSize (i);
+        orgMesh.setTriangulationType (OrganizedFastMesh<PointXYZ>::TRIANGLE_ADAPTIVE_CUT );
+        orgMesh.setInputCloud(cloud);
+        search::KdTree<PointXYZ>::Ptr tree2 (new search::KdTree<pcl::PointXYZ>);
+        tree2->setInputCloud (cloud);
+        orgMesh.setSearchMethod(tree2);
+        orgMesh.reconstruct(triangles);
+
+        std::ostringstream ss;
+        ss << "org" << i << ".ply";
+        io::savePLYFile(ss.str(), triangles);
+    }*/
+
+    std::vector<int> dummy;
+    removeNaNFromPointCloud(*cloud, *cloud, dummy);
+    /*for(int i=2; i<=2; i++) {
+        PolygonMesh::Ptr triangles = greedyTriangulate(cloud, 1.5, i*50);
+
+        std::ostringstream ss;
+        ss << "greedy" << (i*50) << "_2.5.ply";
+        io::savePLYFile(ss.str(), *triangles);
+    }*/
 
 //	std::vector<int> dummy;
 //	removeNaNFromPointCloud(*cloud, *cloud, dummy);
@@ -128,15 +184,32 @@ int main(int argc, char** argv) {
 //			<< " data points (" << getFieldsList(*removed_useless) << "). \n";
 
 	// Create the filtering object
-	VoxelGrid<PointXYZ> vox;
-	vox.setInputCloud(cloud);
-	vox.setLeafSize(0.3f, 0.3f, 1.0f);
+    VoxelGrid<PointXYZ> vox;
+    vox.setInputCloud(cloud);
+    vox.setLeafSize(0.15f, 0.15f, 1.0f);
 
-	PointCloud<PointXYZ>::Ptr cloud_filtered(new PointCloud<PointXYZ>());
-	vox.filter(*cloud_filtered);
+    PointCloud<PointXYZ>::Ptr cloud_filtered(new PointCloud<PointXYZ>());
+    vox.filter(*cloud_filtered);
 
-	std::cerr << "PointCloud after filtering (voxel): " << cloud_filtered->width * cloud_filtered->height
+    /*for(int i=1; i<=10; i++) {
+        VoxelGrid<PointXYZ> vox;
+        vox.setInputCloud(cloud);
+        vox.setLeafSize(0.05f*i, 0.05f*i, 1.0f);
+
+        PointCloud<PointXYZ>::Ptr cloud_filtered(new PointCloud<PointXYZ>());
+        vox.filter(*cloud_filtered);
+
+        PolygonMesh::Ptr triangles = greedyTriangulate(cloud_filtered, 1.5, 100);
+
+        std::ostringstream ss;
+        ss << "greedy_filtered_" << i << ".ply";
+        io::savePLYFile(ss.str(), *triangles);
+    }*/
+
+    std::cerr << "PointCloud after filtering (voxel): " << cloud_filtered->width * cloud_filtered->height
 			<< " data points (" << getFieldsList(*cloud_filtered) << ").\n";
+
+    io::savePLYFile("cloud_filtered.ply", *cloud_filtered);
 
 //	PointCloud<PointXYZ>::Ptr removed = radiusOutlierRemoval<PointXYZ>(cloud_filtered, radius, count);
 //	std::cerr << "PointCloud after 2. radius removal: " << removed->width * removed->height << " data points ("
@@ -147,17 +220,19 @@ int main(int argc, char** argv) {
 	std::cerr << "PointCloud after upsampling: " << upsampled->width * upsampled->height << " data points ("
 			<< getFieldsList(*upsampled) << ").\n";
 	writer.write("output_up.pcd", *upsampled);
+    io::savePLYFile("output_up.ply", *upsampled);
 
 	PointCloud<PointXYZ>::Ptr upsampled_filtered(new PointCloud<PointXYZ>());
 	VoxelGrid<PointXYZ> sor2;
-	sor2.setInputCloud(upsampled);
-	sor2.setLeafSize(0.1f, 0.1f, 0.1f);
+    sor2.setInputCloud(upsampled);
+    sor2.setLeafSize(0.3f, 0.3f, 0.3f);
 	sor2.filter(*upsampled_filtered);
 	std::cerr << "PointCloud after upsampled filtering: " << upsampled_filtered->width * upsampled_filtered->height
 			<< " data points (" << getFieldsList(*upsampled_filtered) << ").\n";
 	writer.write("output_up_filtered.pcd", *upsampled_filtered);
 
-	greedyTriangulate(upsampled_filtered);
+    PolygonMesh::Ptr triangles = greedyTriangulate(upsampled_filtered, 1.5, 100);
+    io::savePLYFile("mesh.ply", *triangles);
 
 	return (0);
 }

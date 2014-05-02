@@ -43,7 +43,7 @@ public:
 	Mat P1, P2, E, F;
 	vector<Point3f> objectPoints;
 	vector<Point2f> imagePoints;
-	Rect validRoiLeft, validRoiRight;
+	Rect validRoiLeft, validRoiRight, dispRoi;
 
 	Magic();
 
@@ -63,7 +63,7 @@ public:
 
 	void reprojectTo3D(const Mat& imgDisparity16S, Mat& xyz);
 
-	void filter3DCoordinates(Mat& xyz);
+	void filter3DCoordinates(Mat &xyz, const Rect& roi);
 
 	void getCameraPose(Mat& rvec, Mat& tvec);
 

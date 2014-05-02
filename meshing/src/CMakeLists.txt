@@ -19,6 +19,9 @@ target_link_libraries(feature_matching ${PCL_LIBRARIES})
 add_executable(texturing texturing.cpp)
 target_link_libraries(texturing ${PCL_LIBRARIES})
 
+add_executable(texturing_one texturing_one.cpp)
+target_link_libraries(texturing_one ${PCL_LIBRARIES})
+
 add_executable(meshing meshing.cpp)
 target_link_libraries(meshing ${PCL_LIBRARIES})
 

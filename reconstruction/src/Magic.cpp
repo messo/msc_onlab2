@@ -28,7 +28,7 @@ Magic::Magic() :
 //          200);
 //  createTrackbar("speckleRange", "Magic", &(bm.state->speckleRange), 128);
 
-    bm.state->roi1 = ((CvRect)validRoiLeft);
+	/*bm.state->roi1 = ((CvRect)validRoiLeft);
     bm.state->roi2 = ((CvRect)validRoiRight);
     bm.state->preFilterCap = 31;
     bm.state->SADWindowSize = 13;
@@ -38,7 +38,7 @@ Magic::Magic() :
     bm.state->uniquenessRatio = 1;
     bm.state->speckleWindowSize = 100;
     bm.state->speckleRange = 32;
-    bm.state->disp12MaxDiff = 1;
+	bm.state->disp12MaxDiff = 1;*/
 
 //  namedWindow("Magic SGBM", 1);
 //  createTrackbar("preFilterCap", "Magic SGBM", &(sgbm.preFilterCap), 100);
@@ -69,7 +69,7 @@ Magic::Magic() :
   //createTrackbar("nIt", "VAR", &(var.nIt), 100);
   //createTrackbar("poly_n", "VAR", &(var.poly_n), 10);
 
-  var.levels = 3;                              // ignored with USE_AUTO_PARAMS
+  /*var.levels = 3;                              // ignored with USE_AUTO_PARAMS
   var.pyrScale = 0.5;                          // ignored with USE_AUTO_PARAMS
   var.nIt = 25;
   var.minDisp = -numberOfDisparities;
@@ -80,7 +80,7 @@ Magic::Magic() :
   //var.lambda = 0.03f;
   var.penalization = var.PENALIZATION_TICHONOV; // ignored with USE_AUTO_PARAMS
   var.cycle = var.CYCLE_V;                     // ignored with USE_AUTO_PARAMS
-  var.flags = var.USE_SMART_ID | var.USE_AUTO_PARAMS | var.USE_INITIAL_DISPARITY | var.USE_MEDIAN_FILTERING;
+  var.flags = var.USE_SMART_ID | var.USE_AUTO_PARAMS | var.USE_INITIAL_DISPARITY | var.USE_MEDIAN_FILTERING;*/
 
 	cameraMatrix[0] = Mat::eye(3, 3, CV_64F);
 	cameraMatrix[1] = Mat::eye(3, 3, CV_64F);
@@ -121,6 +121,8 @@ Magic::Magic() :
 							CV_16SC2, rmap[0][0], rmap[0][1]);
 	initUndistortRectifyMap(cameraMatrix[1], distCoeffs[1], R2, P2, imageSize,
 							CV_16SC2, rmap[1][0], rmap[1][1]);
+
+	dispRoi = getValidDisparityROI(validRoiLeft, validRoiRight, sgbm.minDisparity, sgbm.numberOfDisparities, sgbm.SADWindowSize);
 }
 
 Mat Magic::readAndRemap(const string& filename, int cam)
@@ -192,14 +194,14 @@ Mat Magic::normalizeDisparity(const Mat& imgDisparity16S)
 	return imgDisparity8U;
 }
 
-void Magic::filter3DCoordinates(Mat& xyz)
+void Magic::filter3DCoordinates(Mat& xyz, const Rect &roi)
 {
 	objectPoints.clear();
 	imagePoints.clear();
 	for (int y = 0; y < xyz.rows; y++) {
 		for (int x = 0; x < xyz.cols; x++) {
 			Vec3f& point = xyz.at<Vec3f>(y, x);
-			if (fabs(point[2] - MAX_Z) < FLT_EPSILON || fabs(point[2]) > MAX_Z) {
+			if (!roi.contains(Point(x, y)) || fabs(point[2] - MAX_Z) < FLT_EPSILON || fabs(point[2]) > MAX_Z) {
 				point[2] = -1.0f;
 			} else {
 				objectPoints.push_back(Point3f(point));

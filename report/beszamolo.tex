@@ -1,55 +1,17 @@
-% Mindenkinek csak javasolni tudjuk, hogy latex-et használjon.
-% Szakdolgozatnál vagy diplománál már egyértelműen kijönnek az
-% előnyei a Worddel szemben.  Ennek ellenére ez a sablon messze nem
-% tökéletes.  Ha valamit javítanál benne, kérlek, küld vissza, hogy
-% hallgatótársaid is profitáljanak belőle.  Köszönöm.
-
-% További nehézséget okoz, hogy a népszerű latex disztribúciók nem
-% tartalmazzák a legújabb változatát a magyar.ldf-nek.  A szükséges
-% fájlokat a sablon mellé bemásoltuk, de le is tölthetőek innen:
-% http://www.math.bme.hu/latex/
-%
-%
-%
 \documentclass[a4paper,oneside]{article}
-%=================================================================
-% Magyar nyelvi támogatás
-%------------------------
-% ###################
-% Nyelvváltó parancsok:
-%\selectlanguage{english}
-%\selectlanguage{magyar}
-% rövid angol beszúrás:  \foreignlanguage{english}{some english text}
-% határozott névelők generálása ``magyar'' babel-el:
-% argumentum+megfelelő határozott nevelő: \az{},\Az{}
-% csak a megfelelő határozott nevelő: \az*{}, \Az*{}
-% címkék: \aref{}, \aref*{}, képletekhez \aref()
-%        \Aref{}, \Aref*{}, képletekhez \Aref()
-% oldalak: \apageref{}, \apageref*{}
-%        \Apageref{}, \Apageref*{}
-% idézetek: \acite, \acite*, \Acite, \Acite*
-% ###################
-\usepackage[english,magyar]{babel} %vegyes nyelvi támogatás a
-% magyar helyesírás ellenőrzéshez (ispell) és elválasztáshoz
+\usepackage[english,magyar]{babel}
 \selectlanguage{magyar}
 
-%=================================================================
-% direkt ékezetes karakter beírás támogatás
-%-------------------------------------------
-\usepackage[utf8]{inputenc} %input encoding, enables Latin2 chars
-\usepackage{t1enc} %output encoding for magyar
-\usepackage{multirow} 
+\usepackage[utf8]{inputenc}
+\usepackage{t1enc}
+\usepackage{multirow}
 %================================================================
 % Undorító dolog bitmappelt (Type III) betűtípust nézni a PDF-ben
 % képernyőn. Az alapértelmezett Computer Modern font LaTex-ben
 % bitmappelt, ezért használjunk Times fontot:
 \usepackage{times}
 
-%================================================================
-% ha ábrát akarunk beemelni, akkor használjuk a graphicx/graphics
-% csomagot és az \includegraphics[width=<width>]{abra.eps} parancsot
-\usepackage{graphicx} %for graphics
-%kepek helye a gyokerhez(ehhez a file-hoz kepest) kepest
+\usepackage{graphicx}
 \graphicspath{{./figs/}}
 
 %================================================================
@@ -113,10 +75,10 @@
 \usepackage{amsmath}
 \usepackage{array}
 
-\usepackage{caption}
+\usepackage[format=hang]{caption}
 \usepackage{subcaption}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Itt kezdődik a doksi maga
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
@@ -124,8 +86,8 @@
 \onehalfspacing
 \frenchspacing
 
-% Ez kell!!!
 \input{onlabmacros}
+
 \markright{Kriván Bálint (CBVOEN)} % egyoldalas fejléc!!!
 %--------------------------------------------------------------------
 % fedlap
@@ -145,7 +107,9 @@
   \onlabszerzo{Hálózatok és szolgáltatások}{balint@krivan.hu}{Kovács Gábor}{kovacsg@tmit.bme.hu}
   
   \feladatcim{Videofelvételek 3D rekonstrukciója és transzformációja}
+
   \feladatmaga{XXX}
+  
   \tanevfelev{2013/14}{2}
  
 \end{titlepage} 
@@ -162,7 +126,7 @@
 \subsection{A munka állapota, készültségi foka a félév elején}
 \label{sec:munka-allap-kesz}
 
-Az előző félév során az Önálló laboratórium 1 című tárgy keretében megismerkedtem az OpenCV keretrendszerrel, valamint az általa használt kameramodellel és egy lézerpont detektálásának lehetőségeit jártam körben. A jelenlegi félévben így nem kellett elölről kezdeni mindent, ott folytathattam ahol abbahagytam. A jelenlegi félév fő célja, hogy videofelvételeket tudjunk rekonstruálni 3D-ben.
+Az előző félév során az Önálló laboratórium 1 című tárgy keretében megismerkedtem az OpenCV keretrendszerrel, valamint az általa használt kameramodellel és egy lézerpont detektálásának lehetőségeit jártam körben. A jelenlegi félévben így nem kellett elölről kezdeni mindent, ott folytathattam ahol abbahagytam. A jelenlegi félév fő célja, hogy videofelvételeket -- azon belül egy képkockát -- tudjunk rekonstruálni 3D-ben.
 
 \newpage
 %==================================================================
@@ -172,25 +136,28 @@ Az előző félév során az Önálló laboratórium 1 című tárgy keretében 
 \subsection{Sztereó-kalibráció}
 \label{sec:sztereo-kalibracio}
 
-Az előző félévben még csak egy kamerát használtam, de a 3D rekonstrukcióhoz szükség van sztereókamerák alkalmazására. A félév során két darab azonos gyártmányú webkamerát használtam. Mielőtt az általuk készített képeket használni tudnánk szükséges egy kalibráció.
+Az előző félévben még csak egy kamerát használtam, de a 3D rekonstrukcióhoz szükség van sztereókamerák alkalmazására. A félév során két darab azonos gyártmányú webkamerát vettem igénybe. Mielőtt az általuk készített képeket használni tudnánk szükséges egy kalibráció.
 
 A kalibráció során két lényegében eltérő paraméterhalmazt nyerhetünk ki. Az egyik a kamerák tulajdonságaiból adódnak (fókusz-távolság, torzítási paraméterek), ahogy azt az előző félévben is láttuk. A második pedig a két kamera egymáshoz viszonyított helyzete (eltolás, forgatás). A kalibráció során megkaphatjuk azokat a transzformációkat is (a torzítás helyreállítása mellett), melyek a két kamera képét úgy transzformálják, hogy az azonos pontok egy egyenesbe essenek. Felhasználva, hogy az egymásnak megfelelő képpontok csak $x$ irányban térnek el, a két képből a 3D-s pontfelhő helyreállításának számítási komplexitása egyszerűsödik.
 
-Hasonlóan az előző félévhez, most is egy sakktábla mintát fogunk használni a kalibrációhoz. A sakktáblát különböző pozícióban a két kamera által készített képen detektáljuk, majd a mezők sarkainak pozíciói alapján kiszámolhatóak az előzőekben említett paraméterek, melyekhez az OpenCV rendelkezésre bocsájt különböző függvényeket.
+Hasonlóan az előző félévhez, most is egy sakktábla mintát fogunk használni a kalibrációhoz. A sakktáblát különböző pozícióban a két kamera által készített képen detektáljuk, majd a mezők sarkainak pozíciói alapján kiszámoljuk az előzőekben említett paramétereket, melyekhez az OpenCV rendelkezésre bocsájt különböző függvényeket.
 
 \begin{figure}[tbh]
   \centering
-  \includegraphics[width=150pt]{figs/left02.jpg}\hspace{15pt}
-  \includegraphics[width=150pt]{figs/right02.jpg}
+  \includegraphics[width=160pt]{figs/left07.jpg}\hspace{10pt}
+  \includegraphics[width=160pt]{figs/right07.jpg}
   \caption{A kalibrációhoz felhasznált egyik képpár \label{fig:imagepairs}}
 \end{figure}
 
 \begin{figure}[tbh]
   \centering
-  \begin{tikzpicture}[x=320,y=320]
-    \node[anchor=south west,inner sep=0] at (0,0) {\includegraphics[width=320pt]{figs/calibrated.jpg}};
-    \draw[red,thick] (0,0.243) -- (1,0.243);
-    \draw[red,thick] (0,0.083) -- (1,0.083);
+  \begin{tikzpicture}[x=330,y=330]
+	\node[anchor=south west,inner sep=0] at (0.515151,0) {\includegraphics[width=160pt] {figs/calibrated_right.jpg}};
+    \node[anchor=south west,inner sep=0] at (0,0) {\includegraphics[width=160pt]    {figs/calibrated_left.jpg}};
+    \draw[red,thick] (0,0.301) -- (1,0.301);
+    \draw[red,thick] (0,0.200) -- (1,0.200);
+    \draw[red,thick] (0,0.140) -- (1,0.140);
+    \draw[red,thick] (0,0.045) -- (1,0.045);
 \end{tikzpicture}
   \caption{Kalibráció után az előző képpár \label{fig:calibrated}}
 \end{figure}
@@ -199,14 +166,12 @@ A példák között található egy minta-alkalmazás, ami két rögzített kame
 
 \subsection{3D-rekonstrukció}
 
-Kalibráció után rendelkezésre áll minden információ, amire szükségünk lesz a 3D-s pontfelhő megalkotására. OpenCV-ben találhatunk egy \texttt{reprojectImageTo3D} \cite{opencv-reprojectImageTo3D} nevű függvényt, mely pontosan ezt csinálja, de ehhez szükségünk van egy \textit{disparity map}re. Ez azt írja le, hogy egy adott pont a két képen mekkora $\delta x$ távolságra van egymástól. Könnyű meggondolni, hogy ha egy pont a kamerákhoz közel van akkor ez a távolság nagy, ha távol akkor pedig kicsi lásd \aref{fig:depth}. ábra. Ennek felhasználásával adhatunk mindegyik képpontnak mélység információt, így nyerhetjük a 3D-s pontfelhőt.
-
 \begin{figure}[tbh]
   \centering
 \definecolor{ffqqqq}{rgb}{1.0,0.0,0.0}
 \definecolor{qqqqff}{rgb}{0.0,0.0,1.0}
 \begin{tikzpicture}[line cap=round,line join=round,>=triangle 45,x=1.0cm,y=1.0cm]
-\clip(-0.5,-1.15) rectangle (4,7);
+\clip(-1.5,-1.15) rectangle (4,7);
 \draw [dotted,domain=-5.700000000000001:0.5] plot(\x,{(-0.0--0.75*\x)/-0.5});
 \draw [dotted,domain=1.98:15.480000000000002] plot(\x,{(-1.875--0.75*\x)/0.52});
 \draw [dotted,domain=0.5:15.480000000000002] plot(\x,{(-0.75--0.75*\x)/0.5});
@@ -220,11 +185,11 @@ Kalibráció után rendelkezésre áll minden információ, amire szükségünk 
 \draw (2.75,6.0)-- (3.75,6.0);
 \draw (3.75,2.0)-- (2.75,2.0);
 \begin{scriptsize}
-\draw [fill=qqqqff] (0.0,0.0) circle (1.5pt);
-\draw [fill=qqqqff] (1.5,0.0) circle (1.5pt);
-\draw [fill=qqqqff] (0.5,-0.75) circle (1.5pt);
+%\draw [fill=qqqqff] (0.0,0.0) circle (1.5pt);
+%\draw [fill=qqqqff] (1.5,0.0) circle (1.5pt);
+\draw (0.5,-0.75) circle (1.5pt);
 \draw[color=qqqqff] (0.5,-1.02) node {$C1$};
-\draw [fill=qqqqff] (1.98,-0.75) circle (1.5pt);
+\draw (1.98,-0.75) circle (1.5pt);
 \draw[color=qqqqff] (2.1,-1.06) node {$C2$};
 \draw [fill=ffqqqq] (1.25,2.0) circle (1.5pt);
 \draw [fill=qqqqff] (1.25,6.0) circle (1.5pt);
@@ -241,7 +206,9 @@ Kalibráció után rendelkezésre áll minden információ, amire szükségünk 
 \caption{Mélység és a \textit{disparity map} kapcsolata \label{fig:depth}}
 \end{figure}
 
-A szakirodalomban sokféle algoritmust találhatunk \cite{disparity-pixel} \cite{disparity-belief} \cite{disparity-dense-from-sparse}, amellyel két képpár alapján kiszámolhatjuk a disparity mapet, ezek egymástól sebességben, valamint különféle típusú képekre jobb/pontosabb megoldásban térnek el. A fő probléma ezek megítélésénél, hogy főleg jól ismert úgymond ,,referencia'' képekre, szekvenciákra vannak tesztelve, optimalizálva, egymással összehasonlítva nem pedig való életbeli képekkel, ami igencsak eltorzítja a laboratóriumon kívül történő alkalmazásukat. Én úgy döntöttem, hogy az egyszerűség kedvéért az OpenCV-ben implementált megoldások közül választom ki a legjobbnak tűnőt, és nem kezdek el megírni egyet valamelyik publikáció alapján.
+Kalibráció után rendelkezésre áll minden információ, amire szükségünk lesz a 3D-s pontfelhő megalkotására. OpenCV-ben találhatunk egy \texttt{reprojectImageTo3D} \cite{opencv-reprojectImageTo3D} nevű függvényt, mely pontosan ezt csinálja, de ehhez szükségünk van egy \textit{disparity map}re. Ez azt írja le, hogy egy adott pont a két képen mekkora $\Delta x$ távolságra van egymástól. Könnyű meggondolni, hogy ha egy pont a kamerákhoz közel van akkor ez a távolság nagy, ha távol akkor pedig kicsi, lásd \aref{fig:depth}. ábra. Ennek felhasználásával adhatunk mindegyik képpontnak mélység információt, így nyerhetjük a 3D-s pontfelhőt.
+
+A szakirodalomban sokféle algoritmust találhatunk \cite{disparity-pixel} \cite{disparity-belief} \cite{disparity-dense-from-sparse}, amellyel két képpár alapján kiszámolhatjuk a disparity mapet, ezek egymástól sebességben, valamint abban térnek el, hogy különféle típusú képekre jobb/pontosabb megoldást adnak. A fő probléma ezek megítélésénél, hogy főleg jól ismert -- úgymond ,,referencia'' -- képekre, szekvenciákra vannak tesztelve, optimalizálva és egymással összehasonlítva, nem pedig való életbeli képekkel, ami igencsak eltorzítja a valós gyakorlati példákon történő alkalmazásukat/alkalmazhatóságukat. Úgy döntöttem, hogy az egyszerűség kedvéért az OpenCV-ben implementált megoldások közül választom ki a legjobbnak tűnőt, és nem kezdek el megírni egyet valamelyik publikáció alapján. Természetesen későbbiekben ez az implementáció lecserélhető, ha a következő félévek során találunk olyan algoritmust, amit célszerűbb alkalmazni.
 
 Az OpenCV három implementációt tartalmaz: \texttt{StereoBM}, \texttt{StereoSGBM} \cite{disparity-sgbm} és \texttt{StereoVar} \cite{disparity-var}. Ezeket kipróbálva arra jutottam, hogy számomra a \texttt{StereoSGBM} a megfelelő. \Aref{fig:disparities}. ábrán látható az algoritmusok által visszaadott eredmények vizuális megjelenítése (a világosabb szín közelebbi pontot jelent).
 
@@ -270,20 +237,245 @@ Az OpenCV három implementációt tartalmaz: \texttt{StereoBM}, \texttt{StereoSG
 \caption{A baloldali kép és az algoritmusok által adott eredmények \label{fig:disparities}}
 \end{figure}
 
-Jól látható, hogy a \texttt{StereoSGBM} adja a legjobb eredményt és szinte alig lassabb a \texttt{StereoBM}-nél. Bárhogy próbálkoztam, nem sikerült a \texttt{StereoVar}-t értékelhetően felparaméterezni.
+Megfigyelhető, hogy a \texttt{StereoSGBM} adja a legjobb eredményt és szinte alig lassabb a \texttt{StereoBM}-nél. Bárhogy próbálkoztam, nem sikerült a \texttt{StereoVar}-t értékelhetően felparaméterezni, hogy használható eredményt adjon. A későbbiekhez még fontos, hogy csak a használható eltolás-értékeket vegyük figyelembe, jól látható, hogy a \texttt{StereoSGBM} a bal oldali részen ,,fura'' értékeket ad, ez annak köszönhető, hogy a világnak az a része a jobb oldali képen nem látható, így nem tudja ezt kiszámolni rendesen.
 
-Miután megvan a disparity map, meghívhatjuk a \texttt{reprojectImageTo3D} függvényt a megfelelő paraméterekkel és megkaphatjuk a 3D pontfelhőt. Ezt könnyen megjeleníthetjük OpenGL segítségével, vagy kimenthetjük egy jól ismert szöveges formátumba, pl. PLY (Stanford Triangle Format) vagy PCD (Point Cloud Data). Ennek eredményét láthatjuk \aref{fig:pcd}. ábrán.
+Miután megvan a disparity map, meghívhatjuk a \texttt{reprojectImageTo3D} függvényt a megfelelő argumentumokkal és megkaphatjuk a 3D pontfelhőt. Ezt könnyen megjeleníthetjük OpenGL segítségével, vagy kimenthetjük egy jól ismert szöveges formátumba, pl. PLY (Stanford Triangle Format) vagy PCD (Point Cloud Data). Ennek eredménye \aref{fig:pcd}. ábrán látható.
+
+\begin{figure}[tbh]
+  \centering
+  \includegraphics[width=100pt]{figs/snapshot00.png}
+  \includegraphics[width=100pt]{figs/snapshot01.png}
+  \includegraphics[width=100pt]{figs/snapshot02.png}
+  \caption{A 3D-s pontfelhő megjelenítése balról, majdnem szemből és kissé felülről \label{fig:pcd}}
+\end{figure}
+
+Tekintve a webkamerák rossz minőségét egészen értékelhető eredményt kaptunk.
+
+\subsection{Pontfelhő simítása, \textit{mesh} (objektum-háló) készítése}
+
+Az előzőekben ismertetett eredményeknél nem álltam meg, megnéztem, hogyan lehet egy kicsit szebbé, és a későbbiekben használhatóbbá tenni az eredményt. Ha a pontfelhőből egy \textit{mesh}t tudnánk készíteni és azt a kamera által készített képpel textúrázni akkor sokkal szebb/simább eredményt kaphatunk.
+
+Ehhez az OpenCV-n kívül egy másik ingyenesen elérhető és nyílt forráskódú alkalmazáskönyvtárat vettem igénybe, a PCL-t \cite{pcl}.
+
+\subsubsection{Mesh számolás pontfelhőre}
+
+Először nézzük meg, hogy a PCL-ben milyen beépített lehetőségeink vannak. Felületek számítására két alapvetően különböző módszercsalád közül választhatunk: az egyik a \texttt{MeshConstruction}, ahol a pontokat változatlanul hagyva próbáljuk őket összekötni és így egy hálót alkotni, a másik pedig a \texttt{SurfaceReconstruction}, ahol már a pontokat is módosítva alakítunk ki egy felületet. A következőkben az első családból nézünk meg 2 eljárást.
+
+Tekintve, hogy a pontfelhőnk rendezett (azaz a vertexeket úgy kaptuk, hogy egy kép pixeleihez rendeltünk mélységet), használhatjuk az \texttt{OrganizedFastMesh} \cite{organizedfastmesh} algoritmust, ami a rendezettséget felhasználja a szomszédos pontok összekötéséhez. Egyetlen egy paraméterünk van, mégpedig a háromszögek éleinek hossza pixelben, minél nagyobbat választunk annál durvább lesz a felület, de így áthidalhatóak a nagyobb hézagok. \Aref{fig:fastmesh}. ábrán láthatunk néhány felületet különböző paraméterekkel.
+
+\begin{figure}[tbh]
+  \centering
+  \begin{subfigure}[b]{.24\linewidth}
+	\centering
+	\includegraphics[width=75pt]{figs/fastmesh1.png}
+	\caption{\label{fig:fastmesh1}}
+  \end{subfigure}%
+  \begin{subfigure}[b]{.24\linewidth}
+	\centering
+    \includegraphics[width=75pt]{figs/fastmesh5.png}
+	\caption{\label{fig:fastmesh5}}
+  \end{subfigure}
+  \begin{subfigure}[b]{.24\linewidth}
+	\centering
+	\includegraphics[width=75pt]{figs/fastmesh9.png}
+	\caption{\label{fig:fastmesh9}}
+  \end{subfigure}%
+  \begin{subfigure}[b]{.24\linewidth}
+	\centering
+    \includegraphics[width=75pt]{figs/fastmesh13.png}
+	\caption{\label{fig:fastmesh13}}
+  \end{subfigure}
+\caption{\textit{a)} 1, \textit{b)} 5, \textit{c)} 9 valamint \textit{d)} 13 pixel hosszú háromszögoldalak \label{fig:fastmesh}}
+\end{figure}
+
+Textúrázhatóság szempontjából 9-től felfelé értékelhető, de jól látszódik, hogy az eredeti pontfelhő ,,rusztikusságából'' adódóan az így kapott felület is az, hiszen a vertexek pozícióján nem változtatunk, csak összekötjük őket.
+
+A másik megvizsgált algoritmus a \texttt{GreedyProjectionTriangulation} \cite{greedy}. Lényege, hogy mohón (lokális szomszédsági viszonyokat vizsgálva) növeszti a háromszöghálót a beállított paramétereknek megfelelően, felhasználva a vertexek normáljait (melyeket megbecsülhetünk szintén lokális szomszédsági adatokat vizsgálva). Ennek több állítható paramétere van, amelyek közül a három legfontosabb: keresési sugár (lényegében egy felső korlát a háromszög oldalhosszaira), szomszédok száma (hány szomszédot vizsgáljon meg), valamint egy $\mu$ paraméter, ami azt szabályozza, hogy maximum hányszor messzebb lehet egy potenciális szomszéd a legközelebbi szomszédnál, hogy még összeköthetőnek minősítse. Néhány paraméterkombinációt megvizsgálva kapjuk \aref{fig:greedy}. ábrán látható hálókat.
+
+\begin{figure}[tbh]
+  \centering
+  \begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=100pt]{figs/greedy_50_2_5.png}
+	\caption{\label{fig:greedy50}}
+  \end{subfigure}%
+  \begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=100pt]{figs/greedy_100_2_5.png}
+	\caption{\label{fig:greedy100_1}}
+  \end{subfigure}%
+  \begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=100pt]{figs/greedy_100_10.png}
+	\caption{\label{fig:greedy100_2}}
+  \end{subfigure}%
+\caption{50 és 100 szomszéd vizsgálata $\mu=2,5$-tel, valamint 100 szomszéd $\mu=10$-zel, a sugár fixen $1,5$ \label{fig:greedy}}
+\end{figure}
+
+A keresési sugár lényegében a sebességen változtat jelentősen, a háló mintájáért jelen esetünkben csak az volt a fontos, hogy az összekötendő pontok biztosan beleessenek az adott gömbbe. A szomszédok darabszáma jelentősen nem befolyásolja az összeköthetőséget, hiszen általában mindig van egy relatíve közeli pont, így a $\mu$ a domináns. Ha ezt növeljük, akkor távol eső pontok is összekötődnek, viszont a pontfelhő nem elég sima, így az elkészült felület (\ref{fig:greedy_closeup}. ábra) nagyon ,,meredek'', valamint az is látható, hogy továbbra is vannak hézagok.
+
+\begin{figure}[tbh]
+	\centering
+	\includegraphics[width=180pt]{figs/greedy_closeup.png}
+	\caption{Közeli kép a felületről \label{fig:greedy_closeup}}
+\end{figure}
+
+A meredekséget csökkenteni (de ezzel rontani az összekötöttséget) különböző szögek paramétereivel lehet, de nem érdemes, a felület simítására van szükség.
+
+\subsubsection{Pontfelhő simítása}
+
+Első ötletként a pontfelhőt ritkítjuk. Itt választhatnánk azt a megközelítést, hogy például minden $n$. sorból csak minden $n$. pontot választjuk, így lényegében $n^2$-tel leosztjuk a pontok számát, ez a viselkedés megfelel az előzőekben látott \texttt{OrganizedFastMesh} algoritmussal az oldalhosszt $n$-re állítva.
+
+\begin{figure}[tbh]
+	\centering
+	\includegraphics[trim=0cm 6.5cm 0cm 6.5cm,width=80pt]{figs/voxels.pdf}
+	\caption{Voxel-háló kockákból \label{fig:voxel_grid}}
+\end{figure}
+
+PCL-ben lehetőségünk van voxel-háló (lásd \ref{fig:voxel_grid}. ábra) alapú ritkításra, melynek lényege, hogy megadott oldalhosszúságú téglatesteket illeszt egymás mellé, és az egy téglatestbe eső vertexeket az ő centroidjukkal helyettesíti. Ezzel pedig nem csak azt érjük el, hogy a pontok száma csökken, hanem simul is.
+
+A 3D rekonstrukciós algoritmus a mélység értékeket nem találja el elég pontosan, így, hogy a $z$ tengely mentén simítsunk, olyan téglatestet választunk a háló építőegységeként, ami ,,mélyebb'', tehát $z$ irányban hosszabb, mint $x$ és $y$.
+
+A ritkítás után már nem használhatjuk az \texttt{OrganizedFastMesh} algoritmust, mert elveszik a rendezettség, ezért a simított pontfelhőre az előzőekben szintén ismertetett \texttt{GreedyProjectionTriangulation} algoritmust használjuk ($\mu=2.5$ és 100 szomszéd vizsgálata) és így a simítás eredménye \aref{fig:voxelgrid}. ábrán látható.
+
+\begin{figure}[tbh]
+  \centering
+  \begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=100pt]{figs/voxel1.png}
+	\caption{$0.05\times 0.05\times 1.0$\label{fig:voxel1}}
+  \end{subfigure}%
+  \begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=100pt]{figs/voxel3.png}
+	\caption{$0.15\times 0.15\times 1.0$\label{fig:voxel3}}
+  \end{subfigure}%
+  \begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=100pt]{figs/voxel5.png}
+	\caption{$0.25\times 0.25\times 1.0$\label{fig:voxel5}}
+  \end{subfigure}%
+\caption{Voxel-háló alapú simítás, különböző méretű voxelekkel \label{fig:voxelgrid}}
+\end{figure}
+
+\subsubsection{Pontfelhő sűrítése}
+
+Megfigyelhetőek kiugró és különálló részek, pl. a balfelső sarokban a növény levelei, vagy a szekrény szélén lefutó kábel. Ezeket kisebb voxelekkel se tudjuk simábbá tenni (lásd \ref{fig:voxel1}. és \ref{fig:voxel3}. ábra), pusztán a háromszögek lesznek sűrűbben, de a felület töredezett marad. Viszont, ha a riktított pontfelhőben közbenső pontokat interpolálunk, akkor már részletesebb, de simább felületet kaphatunk.
+
+Az általam használt módszer a ,,mozgó legkisebb négyzetek'' (\textit{Moving Least Squares -- MLS}) \cite{mls}, melynek található egy implementációja a PCL-ben is. A tényleges sűrítéshez szükség van arra, hogy a pontokra illesztendő függvényeket/felületeket hogyan nyerjük. Ezek közül kettőt vizsgáltam meg: \texttt{SAMPLE\_LOCAL\_PLANE} és \texttt{VOXEL\_GRID\_DILATION}. Előbbi a pontokra próbál illeszteni polinomális függvényeket (melyeket a szomszédok alapján számol), és ennek mentén a függvényeket érintő síkokon vesz fel négyzetrács-csúcspontokat. Ezt demonstrálja \aref{fig:upsampling-plane}. ábra.
+
+\begin{figure}[tbh]
+  \centering
+  \begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=100pt]{figs/plane00.png}
+	\caption{ritkított \label{fig:upsampling-plane1}}
+  \end{subfigure}%
+  \begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=100pt]{figs/plane01.png}
+	\caption{sűrített \label{fig:upsampling-plane2}}
+  \end{subfigure}%
+  \begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=100pt]{figs/plane02.png}
+	\caption{közeli, torzítva \label{fig:upsampling-plane3}}
+  \end{subfigure}%
+\caption{\texttt{SAMPLE\_LOCAL\_PLANE} sűrítő módszer. Az első két ábra mutatja a változást, utóbbi pedig azt demonstrálja, hogy eltorzított paraméterekkel jól látható a síkok és az azokon lévő négyzetrács-pontok. \label{fig:upsampling-plane}}
+\end{figure}
+
+Utóbbi pedig a már jól ismert voxel-hálót alkalmazza: a pontfelhőt beteszi egy voxel-hálóba, majd a pontokra illeszthető polinomiális függvények (a pont környezetében) és a háló metszéspontjait nézi: amely voxeleken áthaladnak, azokat feltölti ponttal. Ezt \aref{fig:upsampling-voxel}. ábra mutatja be.
+
+\begin{figure}[tbh]
+  \centering
+  \begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=100pt]{figs/voxel_up01.png}
+	\caption{ritkított \label{fig:upsampling-voxel1}}
+  \end{subfigure}%
+  \begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=100pt]{figs/voxel_up02.png}
+	\caption{sűrített \label{fig:upsampling-voxel2}}
+  \end{subfigure}%
+  \begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=100pt]{figs/voxel_up03.png}
+	\caption{torzított paraméterek \label{fig:upsampling-voxel3}}
+  \end{subfigure}%
+\caption{\texttt{VOXEL\_GRID\_DILATION} sűrítő módszer. Az első két ábra mutatja a változást, utóbbi pedig azt demonstrálja, hogy eltorzított paraméterekkel jól látható a voxel-hálóból fakadó rácshatás (ebben a tekintetben küllemre hasonlít az előbbire). \label{fig:upsampling-voxel}}
+\end{figure}
+
+Ami érdekes, hogy ez az eredeti pontoktól távol is ,,talál'' pontokat és ott is sűríti ezeket, ezt célszerű lenne kivizsgálni későbbiekben, vagy statisztikai módszerekkel ezeket a távol eső pontokat kiszűrni.
+
+Ezeket a sűrített pontokat megint ritkítva (már kocka-hálót használva), már egészen sima felületeket kapunk, talán túlzóan is. Álljon ennek bemutatásaként \aref{fig:final-surfaces}. ábra, a megfelelő paraméterek helyes megválasztásának meghatározása is az eljövendő félévek egyik feladata lesz. Megfigyelhetjük hogy a voxel-háló alapú jobban kitölti a hézagokat.
+
+\begin{figure}[tbh]
+  \centering
+  \begin{subfigure}[b]{.49\linewidth}
+	\centering
+	\includegraphics[width=160pt]{figs/final00.png}
+	\caption{\texttt{SAMPLE\_LOCAL\_PLANE} \label{fig:final1}}
+  \end{subfigure}%
+  \begin{subfigure}[b]{.49\linewidth}
+	\centering
+	\includegraphics[width=160pt]{figs/final01.png}
+	\caption{\texttt{VOXEL\_GRID\_DILATION} \label{fig:final2}}
+  \end{subfigure}%
+\caption{A két eljárás ritkítás és mesh-számolás után \label{fig:final-surfaces}}
+\end{figure}
+
+\subsection{Textúra vetítése}
+
+\begin{figure}[tbh]
+  \centering
+	\includegraphics[width=150pt]{figs/projection.png}
+	\caption{Textúra vetítése \label{fig:projection}}
+\end{figure}
+
+A PCL-ben rendelkezésre áll minden algoritmus ahhoz, hogy egy adott paraméterekkel rendelkező kamera által látott képet rávetítsünk egy \textit{mesh}re, de erről dokumentáció nem található, így szükség volt egy kis próbálkozásra, forráskód beható vizsgálatára. A kamera képét és felhasználva a kalibráció során nyert paramétereket sikeres volt a vetítés \aref{fig:final2}. ábrán látható hálóra, melynek eredménye \aref{fig:texture}. ábrán látható.
+
+\begin{figure}[tbh]
+  \centering
+  \begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=100pt]{figs/texture00.png}
+	\caption{szemből \label{fig:texture1}}
+  \end{subfigure}%
+  \begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=100pt]{figs/texture01.png}
+	\caption{felülről \label{fig:texture2}}
+  \end{subfigure}%
+  \begin{subfigure}[b]{.32\linewidth}
+	\centering
+	\includegraphics[width=100pt]{figs/texture02.png}
+	\caption{balról \label{fig:texture3}}
+  \end{subfigure}%
+\caption{Textúrázott felület \label{fig:texture}}
+\end{figure}
+
+\subsection{Jövőbeni feladatok}
+
+Könnyű meggondolni, hogy a fentiekben ismertetett lépések sztereovideóra (sztereóképek egymás utáni szekvenciája) is alkalmazhatóak. Érdemes azt is szem előtt tartani, hogy a térrészek statikus részeit (bútorzat, álló tereptárgyak) elég egyszer modellezni, és csak a mozgó objektumokat képkockáról képkockára modellezni (melyeket pl. a mélységinformációk felhasználásával úgy kaphatjuk, hogy ,,kivonjuk'' a hátteret a képből).
+
+Izgalmas feladat még a több nézőpontból felépíthető pontfelhők, egy koordináta-rendszerbe történő transzformálása, így a térrész nagyobb részét tudjuk lefedni. Ezen lehetőségek vizsgálata a következő félév feladata lesz.
 
 \subsection{Összefoglalás}
 \label{sec:osszefoglalas}
 
 A félév során elért eredmények összefoglalva:
 \begin{itemize}
-\item Elolvastam számos API dokumentációt és témához kapcsolódó online cikket, leírást
-\item Készítettem körülbelül 900 sor C++-kódot
-\item Megismertem a ,,lyukkamera'' képalkotási modellt
-\item Elkezdtem használni az OpenCV alkalmazáskönyvtárat, megismertem az alapvető adatszerkezeteit, valamint a kamerakalibrációval kapcsolatos eljárásokat, a mögöttük lévő elméletet
+\item Elolvastam számos API dokumentációt, valamint a témához kapcsolódó online anyagot, publikációt:
+\begin{itemize}
+\item 3D rekonstrukció
+\item felület (re)konstrukció
+\item pontfelhők ritkítása és sűrítése
 \end{itemize}
+\item Megismertem a PCL alkalmazáskönyvtár bizonyos, a fentiekhez kapcsolódó részeit
+\item Készítettem körülbelül 3000 sor C++-kódot
+\end{itemize}
+
 \newpage
  
 %==================================================================
@@ -301,6 +493,6 @@ Az elkészült programkód, illetve a felhasznált fájlok az alábbi GIT repób
 \url{https://github.com/messo/msc_onlab2}
 \end{center}
 
-A tárolóban a forrásfájlok és fejlécek találhatóak, valamint CMake segítségével Makefileok generálhatóak, amelyekkel különféle platformokon lefordíthatóak a futtatható állományok.
+A tárolóban a forrásfájlok és fejlécek találhatóak, valamint CMake segítségével Makefileok generálhatóak, amelyekkel különféle platformokon lefordíthatóak a futtatható állományok -- feltéve, hogy a legfrissebb PCL és OpenCV függvénykönyvtár rendelkezésre áll.
 
 \end{document} 
